@@ -1,0 +1,140 @@
+# Grafana Dashboard ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-agent-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+    app: ai-agent
+data:
+  ai-agent-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "AI Agent Dashboard",
+        "uid": "ai-agent",
+        "tags": ["ai-agent", "production"],
+        "refresh": "30s",
+        "panels": [
+          {
+            "title": "Request Rate",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{app=\"ai-agent\"}[5m]))",
+                "legendFormat": "Requests/s"
+              }
+            ]
+          },
+          {
+            "title": "Error Rate",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{app=\"ai-agent\", status=~\"5..\"}[5m])) / sum(rate(http_requests_total{app=\"ai-agent\"}[5m]))",
+                "legendFormat": "Error Rate"
+              }
+            ]
+          },
+          {
+            "title": "Latency (95th percentile)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{app=\"ai-agent\"}[5m])) by (le))",
+                "legendFormat": "p95 Latency"
+              }
+            ]
+          },
+          {
+            "title": "Active Sessions",
+            "type": "stat",
+            "gridPos": {"h": 4, "w": 4, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(active_sessions{app=\"ai-agent\"})"
+              }
+            ]
+          },
+          {
+            "title": "Pod Count",
+            "type": "stat",
+            "gridPos": {"h": 4, "w": 4, "x": 16, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(kube_pod_status_phase{namespace=\"ai-agent\", phase=\"Running\"})"
+              }
+            ]
+          },
+          {
+            "title": "CPU Usage",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+            "targets": [
+              {
+                "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"ai-agent\", container=\"ai-agent\"}[5m]))",
+                "legendFormat": "CPU Usage"
+              }
+            ]
+          },
+          {
+            "title": "Memory Usage",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+            "targets": [
+              {
+                "expr": "sum(container_memory_working_set_bytes{namespace=\"ai-agent\", container=\"ai-agent\"})",
+                "legendFormat": "Memory"
+              }
+            ]
+          },
+          {
+            "title": "Model Router Status",
+            "type": "table",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+            "targets": [
+              {
+                "expr": "model_router_status{app=\"ai-agent\"}",
+                "format": "table"
+              }
+            ]
+          },
+          {
+            "title": "Tool Execution Stats",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+            "targets": [
+              {
+                "expr": "sum(rate(tool_execution_count{app=\"ai-agent\"}[5m])) by (tool_name)",
+                "legendFormat": "{{tool_name}}"
+              }
+            ]
+          },
+          {
+            "title": "Redis Operations",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+            "targets": [
+              {
+                "expr": "sum(rate(redis_commands_total{app=\"ai-agent\"}[5m]))",
+                "legendFormat": "Redis Ops/s"
+              }
+            ]
+          },
+          {
+            "title": "Task Queue",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+            "targets": [
+              {
+                "expr": "sum(tasks_enqueued{app=\"ai-agent\"}) - sum(tasks_completed{app=\"ai-agent\"})",
+                "legendFormat": "Pending Tasks"
+              }
+            ]
+          }
+        ]
+      }
+    }

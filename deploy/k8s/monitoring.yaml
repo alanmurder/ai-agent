@@ -1,0 +1,114 @@
+# Prometheus ServiceMonitor for AI Agent metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ai-agent-monitor
+  namespace: ai-agent
+  labels:
+    app: ai-agent
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: ai-agent
+  namespaceSelector:
+    matchNames:
+      - ai-agent
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+# PrometheusRule for AI Agent alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ai-agent-rules
+  namespace: ai-agent
+  labels:
+    app: ai-agent
+    release: prometheus
+spec:
+  groups:
+    - name: ai-agent.rules
+      rules:
+        # High error rate alert
+        - alert: AIAgentHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{status=~"5..", app="ai-agent"}[5m])) /
+            sum(rate(http_requests_total{app="ai-agent"}[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "AI Agent high error rate"
+            description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+        # High latency alert
+        - alert: AIAgentHighLatency
+          expr: |
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{app="ai-agent"}[5m])) by (le)) > 2
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "AI Agent high latency"
+            description: "95th percentile latency is {{ $value }}s"
+
+        # Pod unavailable alert
+        - alert: AIAgentPodUnavailable
+          expr: |
+            sum(kube_pod_status_phase{namespace="ai-agent", phase!="Running"}) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "AI Agent pod unavailable"
+            description: "{{ $value }} pods are not running"
+
+        # Model router failure alert
+        - alert: AIAgentModelRouterDown
+          expr: |
+            model_router_status{status="unhealthy"} == 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "AI Agent model router unhealthy"
+            description: "Model router is unhealthy, no available models"
+
+        # Redis connection failure
+        - alert: AIAgentRedisDown
+          expr: |
+            redis_connection_status{status="unhealthy"} == 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Redis connection failed"
+            description: "Redis connection is unhealthy"
+
+        # High memory usage
+        - alert: AIAgentHighMemory
+          expr: |
+            container_memory_usage_bytes{namespace="ai-agent", container="ai-agent"} /
+            container_spec_memory_limit_bytes{namespace="ai-agent", container="ai-agent"} > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "AI Agent high memory usage"
+            description: "Memory usage is {{ $value | humanizePercentage }}"
+
+        # Rate limit exceeded frequently
+        - alert: AIAgentRateLimitExceeded
+          expr: |
+            sum(rate(rate_limit_exceeded_total{app="ai-agent"}[5m])) > 10
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Rate limit frequently exceeded"
+            description: "{{ $value }} rate limit exceed events per second"

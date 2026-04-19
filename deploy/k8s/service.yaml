@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-agent
+  namespace: ai-agent
+  labels:
+    app: ai-agent
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-agent
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+    - name: websocket
+      port: 8081
+      targetPort: 8081
+      protocol: TCP
+
+---
+# Headless service for direct pod access (useful for debugging)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-agent-headless
+  namespace: ai-agent
+  labels:
+    app: ai-agent
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: ai-agent
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP

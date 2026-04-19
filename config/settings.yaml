@@ -1,0 +1,227 @@
+# AI Agent Configuration
+# Main configuration file
+
+# Deployment Mode: local or cloud
+deploy_mode: local
+
+# Model Configuration
+model:
+  # Primary model (Chinese models recommended)
+  primary: deepseek
+
+  # Fallback models in order of priority
+  fallback:
+    - zhipu
+    - qwen
+    - baidu
+    - openai
+    - anthropic
+
+  # Individual model configurations
+  deepseek:
+    api_base: https://api.deepseek.com
+    model_id: deepseek-chat
+    context_window: 64000
+    temperature: 0.7
+    max_tokens: 2048
+    timeout: 60
+
+  zhipu:
+    api_base: https://open.bigmodel.cn
+    model_id: glm-4
+    context_window: 128000
+    temperature: 0.7
+    max_tokens: 2048
+
+  qwen:
+    api_base: https://dashscope.aliyuncs.com
+    model_id: qwen-max
+    context_window: 32000
+    temperature: 0.7
+    max_tokens: 2048
+
+  baidu:
+    api_base: https://aip.baidubce.com
+    model_id: ernie-4.0-8k
+    context_window: 8000
+    temperature: 0.7
+    max_tokens: 1024
+
+  openai:
+    api_base: https://api.openai.com
+    model_id: gpt-4-turbo
+    context_window: 128000
+    temperature: 0.7
+    max_tokens: 2048
+
+  anthropic:
+    api_base: https://api.anthropic.com
+    model_id: claude-3-opus
+    context_window: 200000
+    temperature: 0.7
+    max_tokens: 4096
+
+# Memory System Configuration
+memory:
+  # File storage (Markdown format, like OpenClaw)
+  file_store:
+    path: ~/.ai-agent/workspace
+    soul_md: SOUL.md
+    memory_md: MEMORY.md
+    heartbeat_md: HEARTBEAT.md
+
+  # Database storage
+  database:
+    type: postgres
+    host: localhost
+    port: 5432
+    name: aiagent
+    user: aiagent
+    password: ${DATABASE_PASSWORD}
+
+  # Vector storage for semantic search
+  vector_db:
+    type: pgvector
+    dimensions: 1536
+    index_type: ivfflat
+
+  # Redis for session caching
+  redis:
+    url: redis://localhost:6379/0
+    session_expire: 3600  # 1 hour
+
+  # Memory retention settings
+  retention:
+    short_term_expire: 3600  # 1 hour (seconds)
+    medium_term_expire: 2592000  # 30 days (seconds)
+    long_term_permanent: true
+
+# Skill System Configuration
+skills:
+  # Built-in skills path
+  builtin_path: ./skills/builtin
+
+  # Extensions skills path (user custom skills)
+  extensions_path: ./skills/extensions
+
+  # Auto-update settings
+  auto_update: true
+  update_check_interval: 86400  # 24 hours (seconds)
+
+  # Skill registry (remote skill hub)
+  registry_url: https://skillhub.ai-agent.dev
+
+  # Default skills to load
+  default_skills:
+    - file_manager
+    - web_browser
+    - code_helper
+
+# Gateway Configuration
+gateway:
+  # Active channels
+  channels:
+    - web
+    - wechat
+    - dingtalk
+    - feishu
+
+  # Web API settings
+  web:
+    port: 8080
+    host: 0.0.0.0
+    cors_origins:
+      - "*"
+    websocket_enabled: true
+
+  # Gateway internal port
+  internal_port: 18789
+
+  # Message adapters configuration
+  adapters:
+    wechat:
+      corp_id: ${WECHAT_CORP_ID}
+      agent_id: ${WECHAT_AGENT_ID}
+      secret: ${WECHAT_SECRET}
+      enabled: false
+
+    dingtalk:
+      app_key: ${DINGTALK_APP_KEY}
+      app_secret: ${DINGTALK_APP_SECRET}
+      enabled: false
+
+    feishu:
+      app_id: ${FEISHU_APP_ID}
+      app_secret: ${FEISHU_APP_SECRET}
+      enabled: false
+
+# Heartbeat Configuration (Autonomous tasks)
+heartbeat:
+  enabled: true
+  interval: 300  # 5 minutes (seconds)
+  tasks_file: ~/.ai-agent/workspace/HEARTBEAT.md
+
+  # Autonomous evolution settings
+  evolution:
+    enabled: true
+    level: 1  # 1=memory, 2=skill, 3=autonomous
+    check_interval: 3600  # 1 hour (seconds)
+
+# Logging Configuration
+logging:
+  level: INFO
+  format: json  # json or text
+  file: logs/ai-agent.log
+  rotation: 10MB
+  retention: 7 days
+
+  # Structured logging fields
+  fields:
+    - timestamp
+    - level
+    - message
+    - user_id
+    - session_id
+    - model
+    - skill
+
+# Security Configuration
+security:
+  # API key encryption
+  encrypt_api_keys: true
+
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    burst: 10
+
+  # Sandbox settings for Level 3 evolution
+  sandbox:
+    enabled: true
+    allow_network: false
+    allow_shell: false
+    max_file_size: 1MB
+
+# Version Configuration (Personal vs Enterprise)
+version: personal
+
+# Enterprise-specific settings (only used when version=enterprise)
+enterprise:
+  # Multi-user support
+  multi_user: true
+
+  # Permission levels
+  permission_levels:
+    - admin
+    - manager
+    - operator
+
+  # E-commerce integration
+  ecommerce:
+    platforms:
+      - taobao
+      - jd
+      - pdd
+      - douyin
+    sync_interval: 300  # 5 minutes

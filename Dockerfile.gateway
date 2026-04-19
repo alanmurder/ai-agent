@@ -1,0 +1,31 @@
+# Gateway Service Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY pyproject.toml .
+RUN pip install --no-cache-dir hatch \
+    && hatch build \
+    && pip install --no-cache-dir dist/*.whl
+
+# Copy gateway code
+COPY gateway/ ./gateway/
+COPY core/ ./core/
+COPY config/ ./config/
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Run the gateway
+EXPOSE 8080
+CMD ["python", "-m", "gateway.server"]

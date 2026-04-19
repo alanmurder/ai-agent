@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-agent-config
+  namespace: ai-agent
+  labels:
+    app: ai-agent
+data:
+  # Application configuration
+  DEPLOY_MODE: "cluster"
+  VERSION: "enterprise"
+
+  # Redis configuration
+  REDIS_URL: "redis://redis:6379/0"
+  REDIS_MIN_POOL_SIZE: "5"
+  REDIS_MAX_POOL_SIZE: "20"
+
+  # PostgreSQL configuration (from secret)
+  # DATABASE_URL: postgresql://user:pass@postgres:5432/aiagent
+
+  # Model configuration
+  MODEL_PRIMARY: "deepseek"
+  MODEL_FALLBACK_1: "zhipu"
+  MODEL_FALLBACK_2: "qwen"
+  MODEL_FALLBACK_3: "openai"
+
+  # Task queue configuration
+  TASK_QUEUE_MAX_WORKERS: "10"
+
+  # Session configuration
+  SESSION_TTL_HOURS: "8"
+  JWT_EXPIRY_HOURS: "8"
+  TOKEN_EXPIRY_HOURS: "24"
+
+  # Health check configuration
+  HEALTH_CHECK_INTERVAL: "30"
+  CLUSTER_NAME: "ai-agent-production"
+
+  # Heartbeat configuration
+  HEARTBEAT_ENABLED: "true"
+  HEARTBEAT_INTERVAL: "300"
+
+  # Evolution configuration
+  EVOLUTION_LEVEL: "3"
+  EVOLUTION_ENABLED: "true"

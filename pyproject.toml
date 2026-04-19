@@ -1,0 +1,58 @@
+[project]
+name = "ai-agent"
+version = "0.1.0"
+description = "AI Agent framework with evolution capabilities and persistent memory"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "AI Agent Team"}
+]
+keywords = ["ai", "agent", "llm", "automation"]
+
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.1.0",
+    "httpx>=0.26.0",
+    "redis>=5.0.0",
+    "asyncpg>=0.29.0",
+    "pyyaml>=6.0.1",
+    "python-dotenv>=1.0.0",
+    "structlog>=24.1.0",
+    "openai>=1.12.0",
+    "tiktoken>=0.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.2.0",
+    "mypy>=1.8.0",
+    "black>=24.2.0",
+]
+
+[project.scripts]
+ai-agent = "core.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+
+[tool pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # Core Agent Service
+  agent-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "18789:18789"
+    volumes:
+      - ~/.ai-agent:/data
+      - ./config:/app/config
+      - ./skills:/app/skills
+    environment:
+      - DEPLOY_MODE=local
+      - MODEL_PROVIDER=${MODEL_PROVIDER:-deepseek}
+      - MODEL_API_KEY=${MODEL_API_KEY}
+      - DATABASE_URL=postgresql://aiagent:${DB_PASSWORD}@postgres:5432/aiagent
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18789/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Gateway Service (Web API)
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/app/config
+    environment:
+      - GATEWAY_PORT=8080
+      - AGENT_URL=http://agent-core:18789
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    depends_on:
+      - agent-core
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL with pgvector
+  postgres:
+    image: pgvector/pgvector:pg16
+    volumes:
+      - ai-agent-db:/var/lib/postgresql/data
+      - ./storage/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_DB=aiagent
+      - POSTGRES_USER=aiagent
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-aiagent123}
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiagent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for session caching
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - ai-agent-redis:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ai-agent-db:
+    driver: local
+  ai-agent-redis:
+    driver: local
+
+networks:
+  default:
+    name: ai-agent-network
