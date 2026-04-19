@@ -2,6 +2,10 @@
 .claude/
 CLAUDE.md
 
+# Superpowers (brainstorming/design docs)
+.superpowers/
+docs/superpowers/
+
 # Python cache
 __pycache__/
 *.py[cod]
