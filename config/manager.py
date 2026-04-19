@@ -29,7 +29,7 @@ class MemoryDatabaseSettings(BaseModel):
     port: int = 5432
     name: str = "aiagent"
     user: str = "aiagent"
-    password: str = ""
+    password: Optional[str] = None
 
 
 class MemorySettings(BaseModel):

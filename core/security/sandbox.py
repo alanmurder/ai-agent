@@ -5,7 +5,6 @@ import subprocess
 import tempfile
 import os
 import sys
-import resource
 import signal
 import shutil
 from typing import Any, Optional
@@ -13,6 +12,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 import json
+
+# resource module is Unix-only, not available on Windows
+try:
+    import resource
+except ImportError:
+    resource = None  # type: ignore
 
 from core.logging import get_logger
 from core.security.audit import AuditEventType, get_audit_logger

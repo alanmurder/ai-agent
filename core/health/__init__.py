@@ -322,6 +322,7 @@ _health_checker: Optional[HealthChecker] = None
 
 def get_health_checker() -> HealthChecker:
     """Get global health checker."""
+    global _health_checker
     if _health_checker is None:
         _health_checker = HealthChecker()
     return _health_checker

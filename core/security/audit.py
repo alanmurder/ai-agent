@@ -55,8 +55,8 @@ class AuditEventType(Enum):
 @dataclass
 class AuditEvent:
     """Audit event record."""
-    event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: AuditEventType
+    event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str = ""
     session_id: str = ""
     timestamp: datetime = field(default_factory=datetime.now)
